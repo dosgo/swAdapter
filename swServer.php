@@ -46,22 +46,43 @@ $server->on('request', function ($request, $response) {
         defined('SGSID')  &&  uopz_redefine('SGSID',$_REQUEST['sid']?$_REQUEST['sid']:0);
         defined('SGLID')  &&  uopz_redefine('SGLID',$_REQUEST['lid']?$_REQUEST['lid']:0);
     }
-   
-    ob_start();
-    try {
-        include "index.php";//这个是你的框架入口文件
-        $response->end(ob_get_clean());
-    } catch (Swoole\ExitException $e) {
-        $res=ob_get_clean();
-        if(!$res){
-            $res=$e->getStatus();
-        }
-        $response->end($res);
-    }catch (Throwable  $e) {
-	 ob_end_clean();   
-        //写错误日志
-        $response->status(500,"Server Error");
-        $response->end("Server Error");
+	
+	$filename = str_replace(basename(__FILE__),'',__FILE__) .'public/'.$file;
+	$ext = pathinfo($filename, PATHINFO_EXTENSION);
+	   
+	$mime_types=array('jpg'=>'image/jpeg','jpeg'=>'image/jpeg',
+	      'png'=>'image/png','gif'=>'image/gif',
+	      'html'=>'text/html','css'=>'text/css',
+	      'js'=>'application/javascript'
+	    );
+     //处理文件
+    if (in_array($ext, ["html", "css", "js", "jpg", "png", "gif",'jpeg'])) {
+	//有相对路径处理(不然不安全)
+	if (strpos($file, "../") !== false || strpos($file, "/") !== 0) {
+	    $response->status(403);
+	    $response->end();
+	}else{
+	    $response->header("Content-Type",$mime_types[$ext]);
+	    $response->sendfile($filename);
+	}
+    }else{
+      
+	    ob_start();
+	    try {
+		include "index.php";//这个是你的框架入口文件
+		$response->end(ob_get_clean());
+	    } catch (Swoole\ExitException $e) {
+		$res=ob_get_clean();
+		if(!$res){
+		    $res=$e->getStatus();
+		}
+		$response->end($res);
+	    }catch (Throwable  $e) {
+		 ob_end_clean();   
+		//写错误日志
+		$response->status(500,"Server Error");
+		$response->end("Server Error");
+	    }
     }
 });
 
