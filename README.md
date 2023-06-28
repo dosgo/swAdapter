@@ -12,7 +12,7 @@
     通过魔法runkit劫持
     修改代码替换实现
 ### 4.超全局变量保留$_GET、$_POST $_RQUEST $_FILES $_SERVER 
-    每次请求用$request对象的值替换
+    每次请求用$request对象的值替换(由于开启了一键协程化这会不会有问题到现在都不确定，而且里面也使用静态类这种全局变量)
 ### 5.include require 重复加载和相对路径问题 
     使用include_once和require_once
     使用绝对路径
