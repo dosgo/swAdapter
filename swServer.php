@@ -58,6 +58,7 @@ $server->on('request', function ($request, $response) {
         }
         $response->end($res);
     }catch (Throwable  $e) {
+	 ob_end_clean();   
         //写错误日志
         $response->status(500,"Server Error");
         $response->end("Server Error");
