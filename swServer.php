@@ -17,11 +17,9 @@ if(file_exists($pidFile)){
 }
 
 define("SOOLEWEB",1);
-//一键协程化
-Co::set(['hook_flags' => SWOOLE_HOOK_ALL | SWOOLE_HOOK_NATIVE_CURL]); 
 error_reporting(0);
 $server = new Swoole\Http\Server("0.0.0.0", $port);
-$server->set(['max_request'=>10000,'pid_file'=>$pidFile]);
+$server->set(['max_request'=>10000,'pid_file'=>$pidFile, 'enable_coroutine' => false]);
 $server->on('request', function ($request, $response) {
     
     //注册异常返回
