@@ -2,7 +2,7 @@
 ini_set('opcache.enable',0);
 ini_set('opcache.enable_cli',0);
 define("SWROOT",str_replace(basename(__FILE__),'',__FILE__).'../../');
-include "inc.php";
+
 include SWROOT. 'lib/workerman/Autoloader.php';
 use \Workerman\Worker;
 use \Workerman\Protocols\Http\Request;
