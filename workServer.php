@@ -2,6 +2,7 @@
 ini_set('opcache.enable',0);
 ini_set('opcache.enable_cli',0);
 define("SWROOT",str_replace(basename(__FILE__),'',__FILE__).'../../');
+include "inc.php";
 include SWROOT. 'lib/workerman/Autoloader.php';
 use \Workerman\Worker;
 use \Workerman\Protocols\Http\Request;
@@ -27,12 +28,20 @@ error_reporting(0);
 
 $server = new Worker("http://0.0.0.0:{$port}");
 $server->name = 'MyWebsocketServer';
-$server->count = 1;
+$server->count = 4;
+$worker->reusePort = true;
 $server->reloadable = true;
 $server->pidFile = $pidFile;
+//使用swoole(为啥使用,因为它可以捕获exit函数)
+Worker::$eventLoopClass = 'Workerman\Events\Swoole';
+
+//也使用swoole,我没找到更好用的
+$globalTable = new Swoole\Table(10);
+$globalTable->column('time', Swoole\Table::TYPE_INT);
+$globalTable->create();
 
 
-$server->onMessage = function ($connection, $request) {
+$server->onMessage = function ($connection, $request)  use ($server,$globalTable) {
     static $request_count;
     // 处理 GET POST REQUEST $_FILES
     $_GET = $request->get();
@@ -41,45 +50,24 @@ $server->onMessage = function ($connection, $request) {
     $file = $request->path();
     $_SERVER['REMOTE_ADDR']=$connection->getRemoteIp();
     $_REQUEST=array_merge((array)$_GET,(array)$_POST);
-
-   	$filename = str_replace(basename(__FILE__),'',__FILE__) .'public/'.$file;
-	$ext = pathinfo($filename, PATHINFO_EXTENSION);
-	   
-	$mime_types=array('jpg'=>'image/jpeg','jpeg'=>'image/jpeg',
-	      'png'=>'image/png','gif'=>'image/gif',
-	      'html'=>'text/html','css'=>'text/css',
-	      'js'=>'application/javascript'
-	    );
-     //处理文件
-    if (in_array($ext, ["html", "css", "js", "jpg", "png", "gif",'jpeg'])) {
-	//有相对路径处理(不然不安全)
-	if (strpos($file, "../") !== false || strpos($file, "/") !== 0) {
-	    $connection->status(403);
-	    $connection->end();
-	}else{
-	    $connection->header("Content-Type",$mime_types[$ext]);
-	    $connection->sendfile($filename);
-	}
-    }else{
-          $response = new Response();
-	    ob_start();
-	    try {
-    		include "index.php";//这个是你的框架入口文件
-    		  $response->withBody(ob_get_clean());
-          $connection->send($response);
-          $connection->close();
-
-	    }catch (Throwable  $e) {
-    		  ob_end_clean();
-        
-          $response = new Response();
-          $response->withStatus(500);
-          $response->withBody("Server Error");
-          $connection->send($response);
-          $connection->close();
-	    }
+    if(!$request->file()){
+        $GLOBALS['raw_content'] = $request->rawBody();
     }
-    if(++$request_count >100000) {
+    $response = new Response();
+    $startTime=microtime(true);
+    //保存请求时间
+    $globalTable->set(posix_getpid(), [
+        'time' => $startTime,
+    ]);
+	//include "index.php";
+
+    //更新请求时间
+    $globalTable->set(posix_getpid(), [
+        'time' => 0,
+    ]);
+    $connection->send($response);
+    $connection->close();
+    if(++$request_count >10000) {
         // 请求数达到10000后退出当前进程，主进程会自动重启一个新的进程
         Worker::stopAll();
     }
@@ -95,42 +83,27 @@ $server->onWorkerStart = function ($worker) {
     });
 };
 
+ \Workerman\Lib\Timer::add(10, function () use ($globalTable) {
+   //检测卡死
+   $pids=array();
+   foreach($globalTable as $pid=>$row)
+   {
+       if($row['time']>0&&(microtime(true) - $row['time'])*1000>1000*30){
+           echo "stop pid:{$pid}\r\n";
+           posix_kill($pid, SIGKILL);
+           $pids[]=$pid;
+       } 
+   }
+   //删除key
+   foreach($pids as $pid){
+       $globalTable->del($pid);
+   }
+});
+
+
+
 $server->onWorkerStop = function ($worker) {
     \Workerman\Lib\Timer::del($worker->timer_id);
 };
 
 Worker::runAll();
-
-
-//检测文件改变(当然inotify性能更好)
-function checkChange(){
-    global $fileInfo;
-    //监控的目录
-    $dirs=array(SWROOT.'model',
-                SWROOT.'api',
-                SWROOT.'config',
-                SWROOT.'lib');
-    $newFileInfo=array();
-    clearstatcache(true);
-    foreach($dirs as $dir){
-        $reDir = new RecursiveDirectoryIterator($dir);
-        $iterator = new RecursiveIteratorIterator($reDir, RecursiveIteratorIterator::SELF_FIRST);
-        foreach ($iterator as $file) {
-            if ($file->isFile()) {
-                if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
-                {
-                    continue;
-                }
-                $newFileInfo[$file->getPathname()]=$file->getCTime();
-            }
-        }
-    }
-    foreach($newFileInfo as $file=>$z){
-        if($z!=$fileInfo[$file]&&!empty($fileInfo)){
-            $fileInfo=array();
-            return true;
-        }
-    }
-    $fileInfo=$newFileInfo;
-    return false;
-}
