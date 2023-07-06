@@ -36,7 +36,7 @@ $server->pidFile = $pidFile;
 Worker::$eventLoopClass = 'Workerman\Events\Swoole';
 
 //也使用swoole,我没找到更好用的
-$globalTable = new Swoole\Table(10);
+$globalTable = new Swoole\Table(256);
 $globalTable->column('time', Swoole\Table::TYPE_INT);
 $globalTable->create();
 
@@ -62,9 +62,7 @@ $server->onMessage = function ($connection, $request)  use ($server,$globalTable
 	//include "index.php";
 
     //更新请求时间
-    $globalTable->set(posix_getpid(), [
-        'time' => 0,
-    ]);
+    $globalTable->del(posix_getpid());
     $connection->send($response);
     $connection->close();
     if(++$request_count >10000) {
