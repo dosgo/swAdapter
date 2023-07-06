@@ -22,7 +22,7 @@ if(file_exists($pidFile)){
 define("SOOLEWEB",1);
 error_reporting(0);
 // 创建一个共享内存表
-$globalTable = new Swoole\Table(10);
+$globalTable = new Swoole\Table(256);
 $globalTable->column('time', Swoole\Table::TYPE_INT);
 $globalTable->create();
 
@@ -59,9 +59,7 @@ $server->on('request', function ($request, $response)  use ($server,$globalTable
     //载入你的入口文件
     include "index.php";
     //更新请求时间
-    $globalTable->set($server->worker_pid, [
-        'time' => 0,
-    ]);
+    $globalTable->del($server->worker_pid);
     //慢日志(大于300毫秒的)
     $runtime=microtime(true) - $startTime;
     if($runtime*1000>300){
