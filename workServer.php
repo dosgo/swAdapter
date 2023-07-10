@@ -1,6 +1,6 @@
 <?php
 define("SWROOT",str_replace(basename(__FILE__),'',__FILE__).'../../');
-include SWROOT. 'lib/workerman/Autoloader.php';
+include SWROOT. 'workerman/Autoloader.php';
 use \Workerman\Worker;
 use \Workerman\Protocols\Http\Request;
 use \Workerman\Protocols\Http\Response;
