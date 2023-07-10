@@ -30,9 +30,10 @@ function checkChange(){
 
 function checkRun($pidFile){
     if(file_exists($pidFile)){
-    $pid = intval(file_get_contents($pidFile));
-    if (posix_kill($pid, SIG_DFL)) {//判断该进程是否正常运行中
-        return $pid;
+        $pid = intval(file_get_contents($pidFile));
+        if (posix_kill($pid, SIG_DFL)) {//判断该进程是否正常运行中
+            return $pid;
+        }
     }
     return false;
 }
