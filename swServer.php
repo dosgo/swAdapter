@@ -50,7 +50,6 @@ function checkChange(){
     return false;
 }
 
-define("SOOLEWEB",1);
 error_reporting(0);
 // 创建一个共享内存表
 $globalTable = new Swoole\Table(128);
@@ -86,13 +85,12 @@ $server->on('request', function ($request, $response)  use ($server,$globalTable
     }
     $file=$request->server['request_uri'];
     $_REQUEST=array_merge((array)$_GET,(array)$_POST);
-    $_REQUEST['demo'] = $demo; //内网
     $startTime=microtime(true);
     //保存请求时间
     $globalTable->set($server->worker_pid, [
         'time' => $startTime,
     ]);
-    ninekdevPatch($file,$response);
+    include "index.php";
     //删除请求时间
     $globalTable->del($server->worker_pid);
     //慢日志(大于300毫秒的)
