@@ -12,11 +12,8 @@ if (version_compare(phpversion('swoole'), '4.6.2', '<')) {
 $pidFile=sys_get_temp_dir().'/'.basename(__FILE__).'.pid';
 $port=isset($argv[1])?intval($argv[1]):9501;
 $demo=isset($argv[2])?intval($argv[2]):0;
-if(file_exists($pidFile)){
-    $pid = intval(file_get_contents($pidFile));
-    if (posix_kill($pid, SIG_DFL)) {//判断该进程是否正常运行中
-        return $pid;
-    } 
+if(checkRun($pidFile)){
+   return false;	
 }
 
 error_reporting(0);
