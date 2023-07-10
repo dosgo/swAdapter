@@ -22,7 +22,36 @@ if(file_exists($pidFile)){
 }
 
 
-//define("SOOLEWEB",1);
+$lastTime=time();
+//检测文件改变
+function checkChange(){
+    global $lastTime;
+    //监控的目录
+    $dirs=array(SWROOT.'model',
+                SWROOT.'api',
+                SWROOT.'config',
+                SWROOT.'lib');
+    clearstatcache(true);
+    foreach($dirs as $dir){
+        $reDir = new RecursiveDirectoryIterator($dir);
+        $iterator = new RecursiveIteratorIterator($reDir, RecursiveIteratorIterator::SELF_FIRST);
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
+                {
+                    continue;
+                }
+                if($file->getMTime()>$lastTime){
+                    $lastTime=$file->getMTime();
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
 
 error_reporting(0);
 
@@ -50,7 +79,6 @@ $server->onMessage = function ($connection, $request)  use ($server,$globalTable
     $file = $request->path();
     $_SERVER['REMOTE_ADDR']=$connection->getRemoteIp();
     $_REQUEST=array_merge((array)$_GET,(array)$_POST);
-    $_REQUEST['demo'] =  $demo; //内网
     if(!$request->file()){
         $GLOBALS['raw_content'] = $request->rawBody();
     }
