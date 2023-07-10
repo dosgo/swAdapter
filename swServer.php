@@ -1,7 +1,6 @@
 <?php
-ini_set('opcache.enable',0);
-ini_set('opcache.enable_cli',0);
 define("SWROOT",str_replace(basename(__FILE__),'',__FILE__).'../../');
+include "inc.php";
 /*
 *注意禁止开启协程功能,如果开启不得使用超全局变量,全局变量,静态类,单例数据库模式
 *如果开启协程超全局变量需要使用协程上下文,数据库 redis等要用连接池
