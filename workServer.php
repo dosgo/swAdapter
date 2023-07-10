@@ -12,6 +12,9 @@ use \Workerman\Connection\TcpConnection;
 
 $pidFile=sys_get_temp_dir().'/'.basename(__FILE__).'.pid';
 $port=isset($argv[2])?intval($argv[2]):9502;
+if(checkRun($pidFile)){
+   return false;	
+}
 
 $server = new Worker("http://0.0.0.0:{$port}");
 $server->name = 'workmanServer';
