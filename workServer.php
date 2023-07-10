@@ -1,6 +1,4 @@
 <?php
-ini_set('opcache.enable',0);
-ini_set('opcache.enable_cli',0);
 define("SWROOT",str_replace(basename(__FILE__),'',__FILE__).'../../');
 include SWROOT. 'lib/workerman/Autoloader.php';
 use \Workerman\Worker;
@@ -14,46 +12,6 @@ use \Workerman\Connection\TcpConnection;
 
 $pidFile=sys_get_temp_dir().'/'.basename(__FILE__).'.pid';
 $port=isset($argv[2])?intval($argv[2]):9502;
-if(file_exists($pidFile)){
-    $pid = intval(file_get_contents($pidFile));
-    if (posix_kill($pid, SIG_DFL)) {//判断该进程是否正常运行中
-        return $pid;
-    } 
-}
-
-
-$lastTime=time();
-//检测文件改变
-function checkChange(){
-    global $lastTime;
-    //监控的目录
-    $dirs=array(SWROOT.'model',
-                SWROOT.'api',
-                SWROOT.'config',
-                SWROOT.'lib');
-    clearstatcache(true);
-    foreach($dirs as $dir){
-        $reDir = new RecursiveDirectoryIterator($dir);
-        $iterator = new RecursiveIteratorIterator($reDir, RecursiveIteratorIterator::SELF_FIRST);
-        foreach ($iterator as $file) {
-            if ($file->isFile()) {
-                if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
-                {
-                    continue;
-                }
-                if($file->getMTime()>$lastTime){
-                    $lastTime=$file->getMTime();
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-
-
-
-error_reporting(0);
 
 $server = new Worker("http://0.0.0.0:{$port}");
 $server->name = 'workmanServer';
