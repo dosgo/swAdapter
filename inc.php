@@ -19,7 +19,7 @@ function checkChange(){
                     continue;
                 }
                 if($file->getMTime()>$lastTime){
-                    $lastTime=$file->getMTime();
+                    $lastTime=time();
                     return true;
                 }
             }
