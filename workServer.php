@@ -1,8 +1,8 @@
 <?php
 error_reporting(0);
-define("SWROOT",str_replace(basename(__FILE__),'',__FILE__).'../../');
+define("SWROOT",str_replace(basename(__FILE__),'',__FILE__));
 include "inc.php";
-include SWROOT. 'lib/workerman/Autoloader.php';
+include SWROOT. 'workerman/Autoloader.php';
 use \Workerman\Worker;
 use \Workerman\Protocols\Http\Request;
 use \Workerman\Protocols\Http\Response;
@@ -17,6 +17,7 @@ $port=isset($argv[2])?intval($argv[2]):9502;
 if(checkRun($pidFile,$port)){
     return false;
 }
+
 
 $server = new Worker("http://0.0.0.0:{$port}");
 $server->name = 'workmanServer';
@@ -83,5 +84,4 @@ Timer::add(60, function () use ($globalTable) {
        $globalTable->del($pid);
    }
 });
-
 Worker::runAll();
