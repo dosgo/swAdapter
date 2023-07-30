@@ -9,6 +9,9 @@ function checkChange(){
                 SWROOT.'lib');
     clearstatcache(true);
     foreach($dirs as $dir){
+        if(!is_dir($dir)){
+            continue;
+        }
         $reDir = new RecursiveDirectoryIterator($dir);
         $iterator = new RecursiveIteratorIterator($reDir, RecursiveIteratorIterator::SELF_FIRST);
         foreach ($iterator as $file) {
