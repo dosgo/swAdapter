@@ -61,7 +61,7 @@ function checkRun($pidFile,$port){
             }else{
                 posix_kill(-$pid,SIGKILL);
             }
-            usleep(5000);
+            usleep(1000*200);
         }
     }else{
         $run=false;
