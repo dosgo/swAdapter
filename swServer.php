@@ -78,7 +78,7 @@ $server->tick(1000*60, function () use ($server,$globalTable) {
     $pids=array();
     foreach($globalTable as $pid=>$row)
     {
-        if($row['time']>0&&(microtime(true) - $row['time'])*1000*1000>300){
+        if($row['time']>0&&(microtime(true) - $row['time'])>300){
             posix_kill($pid, SIGKILL);
             $pids[]=$pid;
         }
