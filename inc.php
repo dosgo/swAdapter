@@ -20,7 +20,7 @@ function checkChange(){
                 {
                     continue;
                 }
-                if($file->getMTime()>$GLOBALS['lastTime']){
+                if($file->getCTime()>$GLOBALS['lastTime']){
                     $GLOBALS['lastTime']=time();
                     return true;
                 }
