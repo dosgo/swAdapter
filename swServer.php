@@ -43,14 +43,18 @@ $server->on('request', function ($request, $response)  use ($server,$globalTable
     if(!$request->files){
         $GLOBALS['raw_content'] = $request->rawContent();
     }
-    $file=$request->server['request_uri'];
     $_REQUEST=array_merge((array)$_GET,(array)$_POST);
     $startTime=microtime(true);
     //保存请求时间
     $globalTable->set($server->worker_pid, [
         'time' => $startTime,
     ]);
+
+    ob_start(function($buffer) use($request){ 
+        $request->write($buffer);
+    },1024); 
     include "index.php";//
+    ob_end_clean();
     //删除请求时间
     $globalTable->del($server->worker_pid);
     //慢日志(大于300毫秒的)
@@ -73,20 +77,8 @@ $server->on('Task', function ($http, $task_id, $worker_id, $data) use ($server) 
 });
 
 //卡死检测
-$server->tick(1000*60, function () use ($server,$globalTable) {
-    //检测卡死
-    $pids=array();
-    foreach($globalTable as $pid=>$row)
-    {
-        if($row['time']>0&&(microtime(true) - $row['time'])>300){
-            posix_kill($pid, SIGKILL);
-            $pids[]=$pid;
-        }
-    }
-    //删除key
-    foreach($pids as $pid){
-        $globalTable->del($pid);
-    }
+$server->tick(1000*60, function () use ($globalTable) {
+    checkStuck($globalTable,5*60);
 });
 
 
@@ -94,31 +86,14 @@ $server->tick(1000*60, function () use ($server,$globalTable) {
 $server->on('WorkerStart', function ($server, $worker_id)  use($pidFile){
     //task进程来触发
     if ($worker_id == $server->setting['worker_num']&&$server->taskworker) {
-        file_put_contents($pidFile.'.manager', $server->manager_pid);
         $GLOBALS['lastTime']=time();
         //热重启检测
         $server->tick(1000*10, function () use ($server) {
             if (checkChange()) {
                 // 触发重启
-               // $server->reload();
                posix_kill(posix_getppid(), SIGUSR1);
             }
         });
     }
 });
 $server->start();
-
-//错误返回500
-function shutdownCall($response,$data,$url){
-    $aError = error_get_last();
-	if ((!empty( $aError)) && ($aError['type'] !== E_NOTICE)) {
-		$file = SWROOT.'data/phperror/swphperr.php';
-		$error .= date( 'Y-m-d H:i:s') . '---';
-		$error .= 'Error:' . $aError['message'] . '--';
-		$error .= 'File:' . $aError['file'] . '--';
-		$error .= 'Line:' . $aError['line'];
-        $error.='data:'.json_encode($data);
-        $error.='url:'.$url;
-		@file_put_contents( $file, $error . " \n ", FILE_APPEND | LOCK_EX);
-	}
-}

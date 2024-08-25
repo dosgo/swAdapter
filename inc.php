@@ -68,3 +68,19 @@ function checkRun($pidFile,$port){
     }
     return $run;
 }
+
+function checkStuck($globalTable,$stuckTime=300) {
+    //检测卡死
+    $pids=array();
+    foreach($globalTable as $pid=>$row)
+    {
+        if($row['time']>0&&(microtime(true) - $row['time'])>$stuckTime){
+            posix_kill($pid, SIGKILL);
+            $pids[]=$pid;
+        }
+    }
+    //删除key
+    foreach($pids as $pid){
+        $globalTable->del($pid);
+    }
+}

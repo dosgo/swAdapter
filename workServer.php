@@ -40,7 +40,6 @@ $server->onMessage = function ($connection, $request)  use ($server,$globalTable
     $_GET = $request->get();
     $_POST = $request->post();
     $_FILES = $request->file();
-    $file = $request->path();
     $_SERVER['REMOTE_ADDR']=$connection->getRemoteIp();
     $_REQUEST=array_merge((array)$_GET,(array)$_POST);
     if(!$request->file()){
@@ -51,10 +50,14 @@ $server->onMessage = function ($connection, $request)  use ($server,$globalTable
     $globalTable->set(posix_getpid(), [
         'time' => $startTime,
     ]);
+
+    ob_start(function($buffer) use($connection){ 
+        $connection->send($buffer);
+    },1024); 
     include "index.php";//
+    ob_end_clean();
     //更新请求时间
     $globalTable->del(posix_getpid());
-    $connection->send($response);
     $connection->close();
     if(++$request_count >10000) {
         // 请求数达到10000后退出当前进程，主进程会自动重启一个新的进程
@@ -70,18 +73,6 @@ Timer::add(10, function () use ($worker) {
     }
 });
 Timer::add(60, function () use ($globalTable) {
-   //检测卡死
-   $pids=array();
-   foreach($globalTable as $pid=>$row)
-   {
-       if($row['time']>0&&(microtime(true) - $row['time'])>300){
-           posix_kill($pid, SIGKILL);
-           $pids[]=$pid;
-       } 
-   }
-   //删除key
-   foreach($pids as $pid){
-       $globalTable->del($pid);
-   }
+    checkStuck($globalTable,5*60);
 });
 Worker::runAll();
