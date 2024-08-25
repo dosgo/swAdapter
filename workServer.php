@@ -24,8 +24,10 @@ $server->name = 'workmanServer';
 $server->count =4;
 $worker->reusePort = true;
 $server->reloadable = true;
-//使用swoole(为啥使用,因为它可以捕获exit函数)
-Worker::$eventLoopClass = 'Workerman\Events\Swoole';
+//使用swoole(为啥使用,因为它可以捕获exit/die函数)
+if(extension_loaded('swoole')){
+    Worker::$eventLoopClass = 'Workerman\Events\Swoole';
+}
 Worker::$pidFile = $pidFile;
 TcpConnection::$defaultMaxPackageSize = 8*1024*1024;
 
