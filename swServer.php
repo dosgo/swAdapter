@@ -50,8 +50,8 @@ $server->on('request', function ($request, $response)  use ($server,$globalTable
         'time' => $startTime,
     ]);
 
-    ob_start(function($buffer) use($request){ 
-        $request->write($buffer);
+    ob_start(function($buffer) use($response){ 
+        $response->write($buffer);
     },1024); 
     include "index.php";//
     ob_end_clean();
