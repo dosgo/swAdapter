@@ -22,7 +22,7 @@ if(checkRun($pidFile,$port)){
 $server = new Worker("http://0.0.0.0:{$port}");
 $server->name = 'workmanServer';
 $server->count =4;
-$worker->reusePort = true;
+$server->reusePort = true;
 $server->reloadable = true;
 //使用swoole(为啥使用,因为它可以捕获exit/die函数)
 if(extension_loaded('swoole')){
