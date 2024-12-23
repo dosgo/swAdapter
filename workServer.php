@@ -44,7 +44,7 @@ $server->onMessage = function ($connection, $request)  use ($server,$globalTable
             'time' => microtime(true),
         ]);
     }
-    $app=new ninekeApp($demo);
+    $app=new app($demo);
     $psr7Request=workermanToPsr7Request($request);
     $psr7Response=$app->handle($psr7Request);
     $connection->send(GuzzleHttp\Psr7\Message::toString($psr7Response),true);
