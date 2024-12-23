@@ -1,6 +1,6 @@
 <?php
 include_once SWROOT. 'lib/guzzleHttp/autoload.php';
-class ninekeApp
+class app
 {
     private $demo=0;
     private static $headers=array();
