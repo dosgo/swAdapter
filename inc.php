@@ -1,6 +1,6 @@
 <?php
-define("SWROOT",realpath(str_replace(basename(__FILE__),'',__FILE__).'../../').'/');
-include_once SWROOT. 'lib/guzzleHttp/autoload.php';
+define("SWROOT",realpath(str_replace(basename(__FILE__),'',__FILE__)).'/');
+include_once SWROOT. '/vendor/autoload.php';
 $GLOBALS['lastTime']=time();
 //检测文件改变
 function checkChange(){
