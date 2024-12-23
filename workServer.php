@@ -2,7 +2,6 @@
 error_reporting(0);
 include "inc.php";
 include "app.php";
-include SWROOT. 'lib/workerman/Autoloader.php';
 
 use \Workerman\Worker;
 use \Workerman\Connection\TcpConnection;
@@ -18,7 +17,7 @@ $server = new Worker("http://0.0.0.0:{$port}");
 $server->name = 'workmanServer';
 $server->count =$demo?10:100;
 $server->reloadable = true;
-if(stripos($_ENV['OS'],'windows')===false){
+if(stripos(isset($_ENV['OS'])?$_ENV['OS']:'','windows')===false){
     $server->reusePort=true;
 }
 //使用swoole(为啥使用,因为它可以捕获exit函数)
