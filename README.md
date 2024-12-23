@@ -42,3 +42,8 @@
     修改业务代码
 
 经过以上处理基本可以跑起来了,一般的程序至少有5倍qps提升,上面是个例子。我的项目就改了常量和include问题
+
+
+
+composer require workerman/workerman
+composer require GuzzleHttp/Psr7
