@@ -32,7 +32,7 @@ $conf=array(
     'task_worker_num' =>2,
     'enable_coroutine' => false,
     'enable_reuse_port'=>true,
-    'log_file' => SWROOT.'data/phperror/swoole.log.php',
+    'log_file' => SWROOT.'/swoole.log.php',
     'log_level' => 4,
 );
 $server->set($conf);
