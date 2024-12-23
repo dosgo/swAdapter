@@ -1,5 +1,5 @@
 <?php
-include_once SWROOT. 'lib/guzzleHttp/autoload.php';
+
 class app
 {
     private $demo=0;
