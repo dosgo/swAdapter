@@ -3,27 +3,20 @@ define("SWROOT",realpath(str_replace(basename(__FILE__),'',__FILE__)).'/');
 include_once SWROOT. '/vendor/autoload.php';
 $GLOBALS['lastTime']=time();
 //检测文件改变
-function checkChange(){
+//检测文件改变
+function checkChange($maxDepth=3){
     //监控的目录
-    $dirs=array(SWROOT.'model',
-                SWROOT.'api',
-                SWROOT.'config',
-                SWROOT.'module',
-                SWROOT.'lib');
     clearstatcache(true);
-    foreach($dirs as $dir){
-        $reDir = new RecursiveDirectoryIterator($dir);
-        $iterator = new RecursiveIteratorIterator($reDir, RecursiveIteratorIterator::SELF_FIRST);
-        foreach ($iterator as $file) {
-            if ($file->isFile()) {
-                if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
-                {
-                    continue;
-                }
-                if($file->getCTime()>$GLOBALS['lastTime']||$file->getMTime()>$GLOBALS['lastTime']){
-                    $GLOBALS['lastTime']=time();
-                    return true;
-                }
+    $reDir = new RecursiveDirectoryIterator(SWROOT);
+    $iterator = new RecursiveIteratorIterator($reDir, RecursiveIteratorIterator::SELF_FIRST);
+    $iterator->setMaxDepth($maxDepth);
+    $regex = new RegexIterator($iterator, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+    foreach ($regex as $file) {
+        $fileInfo = new SplFileInfo($file[0]);
+        if ($fileInfo->isFile()) {
+            if($fileInfo->getCTime()>$GLOBALS['lastTime']||$fileInfo->getMTime()>$GLOBALS['lastTime']){
+                $GLOBALS['lastTime']=time();
+                return true;
             }
         }
     }
