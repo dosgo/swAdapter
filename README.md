@@ -8,9 +8,10 @@
     swoole新版本解决,捕获ExitException就行
 ### 2.sleep/usleep函数禁止使用  
     swoole新版本一键协程会hook这些函数
-### 3.session setcookie header 函数 (通过魔法runkit劫持/修改代码替换实现)
+### 3.session setcookie header move_uploaded_file  is_uploaded_file header  函数 (通过魔法runkit劫持/修改代码替换实现)
     通过魔法runkit劫持
     修改代码替换实现
+    >=8.0高版本可以用disable_functions然后定义一个一样的
 ### 4.超全局变量保留$_GET、$_POST $_RQUEST $_FILES $_SERVER 
     每次请求用$request对象的值替换（协程模式不可用）,所以关闭协程
 ### 5.include require 重复加载和相对路径问题 
